@@ -1,0 +1,16 @@
+{
+  "_說明": "這是 api_config.json 的範本（可上傳）。首次啟動若找不到 api_config.json，程式會自動從本檔複製一份；複製後請在網頁的 🅾 OCR 設定中填入你的 API Key（真正的 api_config.json 已被 .gitignore 屏蔽，不會上傳）。",
+  "marker_px": 96.0,
+  "debug_ocr": false,
+  "ocr": {
+    "lang": "japan",
+    "reading_order": "auto",
+    "translate": {
+      "provider": "deepseek",
+      "api_key": "",
+      "base_url": "https://api.deepseek.com",
+      "model": "deepseek-chat",
+      "prompt": "將以下日文翻譯成台灣繁體中文，只輸出譯文，不要解釋。"
+    }
+  }
+}

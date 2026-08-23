@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虚拟环境
+.venv/
+venv/
+env/
+ENV/
+
+# 运行时生成（图片压缩缓存、配置；api_config.json 含 API Key 不入库）
+.cache/
+config.json
+api_config.json
+
+# OCR 调试日志（含原始检测框坐标、原文等敏感数据）
+ocr_debug.log
+
+# 本地推送脚本
+push.bat
+push_reset.bat
+push.log
+
+#  多餘內容
+
+bbcodemaker_gui.py
+bbcodemaker_gui.bat
+rename.py
+rename.bat
+models
+
+
+# 旧版本备份
+backup/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ===== 个人数据 / 隐私（上传公开仓库前请保留这些规则）=====
+
+# 漫画标注数据文件（运行时自动生成，会写入漫画原文内容）
+翻译_0.txt
+
+# 个人日语复习笔记（复習帳，含个人学习内容）
+復習帳/
+
+# 漫画图片（防止 git add -A 误传整本漫画）
+.cache/
+tests/
+_debug/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.bmp
+*.tif
+*.tiff
+*.avif
+
+# CTD 模型（約 90MB，用 download_ctd_model.bat 下載）
+models/

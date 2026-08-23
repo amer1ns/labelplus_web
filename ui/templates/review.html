@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>📚 復習帳</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/review.css') }}">
+</head>
+<body>
+  <header>
+    <div class="h-left">
+      <span class="logo">📚</span>
+      <div>
+        <h1>復習帳</h1>
+        <div class="date" id="rvDate"></div>
+      </div>
+    </div>
+    <div class="h-right">
+      <a class="pill" href="/">← 回漫畫</a>
+    </div>
+  </header>
+  <div class="stats">
+    <div class="stat due" id="stDue"><b>0</b><span>今日待複習</span></div>
+    <div class="stat" id="stNew"><b>0</b><span>新學</span></div>
+    <div class="stat" id="stReview"><b>0</b><span>複習中</span></div>
+    <div class="stat" id="stMastered"><b>0</b><span>已掌握</span></div>
+  </div>
+  <main>
+    <section id="cardArea">
+      <div class="card" id="card" onclick="reveal()">
+        <div class="card-front">
+          <div class="card-point" id="cPoint"></div>
+          <div class="card-orig" id="cOrig"></div>
+          <div class="card-ctx" id="cCtx"></div>
+          <div class="card-hint" id="cHint"></div>
+        </div>
+        <div class="card-back" id="cBack" hidden>
+          <div class="c-tran" id="cTran"></div>
+          <div class="c-sec" id="cGrammar"></div>
+          <div class="c-sec" id="cMeaning"></div>
+          <div class="c-sec" id="cExample"></div>
+          <div class="c-sec" id="cConfusion"></div>
+          <div class="c-meta" id="cMeta"></div>
+        </div>
+      </div>
+      <div class="card-acts">
+        <button id="cReveal" class="primary" onclick="reveal()">👁 顯示答案／翻譯</button>
+        <div id="gradeRow" hidden>
+          <button class="g again" data-g="again" title="完全忘了，重新學">😵 忘了</button>
+          <button class="g hard" data-g="hard" title="勉強想起來">🤔 困難</button>
+          <button class="g good" data-g="good" title="記起來了">🙂 記得</button>
+          <button class="g easy" data-g="easy" title="太簡單了">😎 很熟</button>
+          <button class="g skip" data-g="skip" title="今天先跳過（明天再來）">⏭ 跳過</button>
+        </div>
+      </div>
+      <div id="queueEmpty" hidden>
+        <div class="big">🎉 今天沒有待複習的考點</div>
+        <div class="sub">全部搞定！<button id="btnRandom" class="link">隨機回顧一個已掌握的</button></div>
+      </div>
+    </section>
+    <nav class="tabs" id="tabs">
+      <button data-f="due" class="on">今日待複習</button>
+      <button data-f="new">新學</button>
+      <button data-f="learning">複習中</button>
+      <button data-f="mastered">已掌握</button>
+      <button data-f="all">全部</button>
+    </nav>
+    <div id="listHead"></div>
+    <ul id="itemList"></ul>
+  </main>
+  <div id="itemModal">
+    <div class="box">
+      <button class="hx" id="imX" title="關閉">✕</button>
+      <h2 id="imTitle">考點詳情</h2>
+      <label>考點標題（如：〜わけにはいかない）</label><input id="imPoint">
+      <label>原文（日文）</label><textarea id="imOrig" rows="2"></textarea>
+      <label>譯文</label><textarea id="imTran" rows="2"></textarea>
+      <label>我的筆記</label><textarea id="imNote" rows="2"></textarea>
+      <label>語法點</label><textarea id="imGrammar" rows="4"></textarea>
+      <label>含義解析</label><textarea id="imMeaning" rows="2"></textarea>
+      <label>例句</label><textarea id="imExample" rows="2"></textarea>
+      <label>易混淆</label><textarea id="imConfusion" rows="2"></textarea>
+      <div class="im-status" id="imStatus"></div>
+      <div class="act">
+        <button id="imAi">🤖 AI 拆解</button>
+        <button id="imMaster">✔ 標記已掌握</button>
+        <button id="imRelearn">🔄 重新學習</button>
+      </div>
+      <div class="act">
+        <button id="imSave" class="primary">💾 保存修改</button>
+        <button id="imDel" class="danger">🗑 刪除</button>
+        <button id="imClose">關閉</button>
+      </div>
+    </div>
+  </div>
+<script src="{{ url_for('static', filename='js/review.js') }}"></script>
+</body>
+</html>

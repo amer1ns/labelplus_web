@@ -1,0 +1,13 @@
+Flask
+Pillow
+requests
+
+# ---- 選用：AI OCR（體積大，未安裝時 app 仍可啟動，OCR 功能會提示需安裝）----
+paddleocr
+paddlepaddle
+
+# ---- 選用：CTD 漫畫文字偵測（框選更精準；ONNX 模型檔另需自行準備）----
+opencv-python
+numpy
+pyclipper
+shapely

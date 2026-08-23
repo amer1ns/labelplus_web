@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>漫畫標號器</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body oncontextmenu="return false">
+  <div id="modePill">
+    <button id="mLabel" class="on">🏷 標號</button>
+    <button id="mInput">✎ 輸入</button>
+  </div>
+  <div id="app">
+    <div id="rail"></div>
+    <div id="center">
+      <div id="toolbar">
+        <button class="tbtn" id="bRail" title="收合/展開左欄">☰</button>
+        <div style="flex:1"></div>
+        <button class="tbtn" id="bAddI">＋<small id="bAddILbl">放置·框內</small></button>
+        <button class="tbtn" id="bInOutI">內</button>
+        <button class="tbtn" id="bZOut">－</button>
+        <button class="tbtn" id="bZIn">＋</button>
+        <button class="tbtn" id="bQuality">質量</button>
+        <button class="tbtn" id="bRetest" title="重測網速">重測</button>
+        <button class="tbtn" id="bMarkerDec" title="縮小標號">−</button>
+        <button class="tbtn" id="bMarkerInc" title="放大標號">＋</button>
+        <button class="tbtn" id="bHelp">?</button>
+      </div>
+      <div id="viewport">
+        <div id="view">
+          <img id="pageImg" alt="">
+          <div id="markers"></div>
+        </div>
+      </div>
+    </div>
+    <div id="panel">
+      <div class="ph">📋 標號清單 <span class="n" id="listCount">0</span></div>
+      <div id="list"></div>
+    </div>
+  </div>
+  <div id="topNav">
+    <div class="island h" id="iNav" style="top:5px;left:5px;">
+      <div class="grip"></div>
+      <div class="btns">
+        <button onclick="flip(-1)">◀</button>
+        <div class="lbl" id="navLbl">1/0</div>
+        <button onclick="flip(1)">▶</button>
+      </div>
+    </div>
+  </div>
+  <div id="labelChrome">
+    <div class="island" id="iMenu">
+      <div class="grip"></div>
+      <div class="btns">
+        <button onclick="openPgModal()">☰</button>
+        <button class="sm" id="bDim" onclick="toggleDim()">◐</button>
+        <button class="sm" onclick="openHint()">?</button>
+        <button class="sm" id="bMarkerToggle" title="標號大小">🔧</button>
+        <button class="sm" id="bOcrSet" title="OCR 設定">🅾</button>
+        <button class="sm" id="bOcrWarm" title="預熱 OCR（常駐待命）">⚡</button>
+        <button class="sm" id="bAutoOcr" title="自動 OCR（整頁標號＋翻譯）">🤖</button>
+        <button class="sm" id="bDebug" title="OCR 調試模式（輸出 CTD 框線圖、裁切圖、markdown）">🔍</button>
+        <button class="sm" id="bClearPage" title="清空當前頁所有標號">🗑</button>
+        <button class="sm" id="bExport" title="導出原文（Markdown）">📤</button>
+        <button class="sm" id="bImport" title="導入譯文（Markdown）">📥</button>
+        <button class="sm" id="bReview" title="復習帳（日語考點複習）">📚</button>
+      </div>
+    </div>
+    <div class="island" id="iAdd" style="left:14px;bottom:16px;">
+      <div class="grip"></div>
+      <div class="btns">
+        <button class="primary" id="bAdd">＋</button>
+        <button class="blue" id="bInOut">內</button>
+        <div class="lbl" id="addLbl"><small>新增標號 · 框內</small></div>
+      </div>
+    </div>
+    <div class="island" id="iZoom">
+      <div class="grip"></div>
+      <div class="btns">
+        <button onclick="zoomStep(1.4)">＋</button>
+        <button class="sm" onclick="fitView()">100%</button>
+        <button onclick="zoomStep(1/1.4)">－</button>
+      </div>
+    </div>
+    <div class="island" id="markerIsland" style="right:80px;top:50%;transform:translateY(-50%);display:none;">
+      <div class="grip"></div>
+      <div style="padding:8px;display:flex;flex-direction:column;gap:8px;min-width:160px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <button id="mDec" class="sm">−</button>
+          <button id="mInc" class="sm">＋</button>
+        </div>
+        <input id="markerRange" type="range" min="0" max="1000" step="1" style="width:100%">
+        <div style="display:flex;align-items:center;gap:4px;border-top:1px dashed rgba(255,255,255,.15);padding-top:8px;">
+          <span class="lbl" style="font-size:9px;">畫質<br><small>緩存</small></span>
+          <button class="sm cq" data-q="low" onclick="setQuality('low')">1000</button>
+          <button class="sm cq" data-q="med" onclick="setQuality('med')">2000</button>
+          <button class="sm cq" data-q="orig" onclick="setQuality('orig')">原圖</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="radial"></div>
+  <div id="editor">
+    <div class="e-top">
+      <span class="e-id">標號 #<span id="eId">0</span></span>
+      <span class="badge in" id="eBadge">框內</span>
+      <span class="e-coord" id="eCoord">0.00,0.00</span>
+      <button id="symBtn" title="特殊符號">Ω</button>
+      <button id="hardBtn" title="標記為難點，加入復習帳">⭐</button>
+      <div id="eOriginal" class="e-orig" contenteditable="true" title="點擊編輯原文" style="display:none;"></div>
+      <span class="e-count" id="eCount">0 字</span>
+    </div>
+    <textarea id="eText" placeholder="輸入翻譯文字…"></textarea>
+    <div class="e-act">
+      <button id="ePrev" title="上一顆">▲</button>
+      <button id="eToggle" title="切換內外">↕</button>
+      <button class="primary" id="eSave" title="保存">💾</button>
+      <button id="eNext" title="下一顆">▼</button>
+      <button id="eClose">✖</button>
+    </div>
+  </div>
+  <div id="symPicker"></div>
+  <div id="pgModal">
+    <div style="width:min(640px,94vw);max-height:80vh;display:flex;flex-direction:column;">
+      <div class="grid" id="pgGrid"></div>
+      <button class="close" onclick="closePgModal()">關閉</button>
+    </div>
+  </div>
+  <div id="hint">
+    <div class="box">
+      <button class="hx" onclick="closeHint()" title="關閉" aria-label="關閉">✕</button>
+      <h2>漫畫標號器</h2>
+      <ul>
+        <li><span class="g">🏷 標號</span>浮島模式：畫布全空，四顆浮島放標號</li>
+        <li><span class="g">✎ 輸入</span>雙欄模式：左縮圖、右清單、中央畫布</li>
+        <li><span class="g">點氣球</span>輸入欄從底部彈出，圖片仍可自由拖動縮放</li>
+        <li><span class="g">長按空白</span>兩模式都可直接新增標號</li>
+        <li><span class="g">兩指縮放</span>放大 / 縮小 · 單指拖動平移</li>
+        <li><span class="g">雙擊</span>適合視窗 ⇄ 放大</li>
+        <li><span class="g">切換</span>標號⇄輸入時，頁面 / 縮放 / 選中標號都保留</li>
+      </ul>
+      <div style="border-top:1px dashed rgba(255,255,255,.15);margin:14px 0 10px;color:#e94560;font-weight:800;font-size:12.6px;">💻 電腦快捷鍵</div>
+      <ul>
+        <li><span class="g">滾輪</span>上下滾動圖片</li>
+        <li><span class="g">Ctrl＋[ / ]</span>縮小 / 放大 · <span class="g">0</span>適合視窗</li>
+        <li><span class="g">← →</span>翻頁</li>
+        <li><span class="g">↑ ↓</span>切換標號 · <span class="g">Ctrl＋↑↓</span>編輯中切換</li>
+        <li><span class="g">Ctrl＋Enter</span>保存 · <span class="g">Esc</span>關閉</li>
+        <li><span class="g">右鍵</span>＝長按選單（空白可新增）</li>
+        <li><span class="g">Ctrl＋拖曳</span>框選文字 OCR＋翻譯</li>
+      </ul>
+      <div style="border-top:1px dashed rgba(255,255,255,.15);margin:14px 0 10px;color:#e94560;font-weight:800;font-size:12.6px;">🅾 OCR 標號</div>
+      <ul>
+        <li><span class="g">🅾 設定</span>語言 / 翻譯提供商 / 文字方向（竪排右→左）</li>
+        <li><span class="g">⚡ 預熱</span>常駐待命，框選即時辨識</li>
+        <li><span class="g">右鍵→框選OCR</span>在既有標號上更新原文＋譯文</li>
+      </ul>
+      <div style="border-top:1px dashed rgba(255,255,255,.15);margin:14px 0 10px;color:#e94560;font-weight:800;font-size:12.6px;">📤📥 Markdown 導出/導入</div>
+      <ul>
+        <li><span class="g">📤 導出</span>導出原文為 Markdown 格式，可用於翻譯後導入</li>
+        <li><span class="g">📥 導入</span>粘貼翻譯後的 Markdown 內容，導入譯文到對應標號</li>
+        <li><span class="g">格式</span>包含 system prompt + 編號原文，翻譯後帶編號譯文</li>
+      </ul>
+    </div>
+  </div>
+  <div id="ocrBox"></div>
+  <div id="hardModal">
+    <div class="box">
+      <button class="hx" id="hmX" title="關閉">✕</button>
+      <h2>⭐ 加入復習帳</h2>
+      <div id="hmExisting" class="hm-existing" style="display:none;"></div>
+      <label>原文（日文）</label>
+      <div class="hm-view" id="hmOrig"></div>
+      <div class="hm-corr" id="hmCorrBox" style="display:none;">
+        <div class="hm-ai-head">🤖 AI 修正後的原文（OCR 可能認錯，以譯文為準）</div>
+        <input id="hmCorr" placeholder="修正後的原文">
+        <label class="hm-corr-check"><input type="checkbox" id="hmCorrApply" checked> 套用：取代原文，並同步更新標號的原文</label>
+      </div>
+      <label>譯文</label>
+      <div class="hm-view" id="hmTran"></div>
+      <div class="hm-pts-head">
+        <span>考點（一句可含多個難點，每個考點一張複習卡）</span>
+        <button id="hmAddPt" type="button">＋ 新增考點</button>
+      </div>
+      <div id="hmPtSummary" class="hm-pt-summary"></div>
+      <div id="hmPoints"></div>
+      <div class="hm-shared">
+        <div class="hm-ai-head">🤖 整句解析（AI 拆解自動填入，可再編輯）</div>
+        <label>含義解析</label>
+        <textarea id="hmMeaning" rows="2"></textarea>
+        <label>例句</label>
+        <textarea id="hmExample" rows="2"></textarea>
+        <label>易混淆</label>
+        <textarea id="hmConfusion" rows="2"></textarea>
+      </div>
+      <div class="act">
+        <button id="hmAi" title="用已設定的翻譯 API 拆解語法與含義">🤖 AI 拆解</button>
+        <button id="hmSave" class="primary">💾 存入復習帳</button>
+        <button id="hmClose">取消</button>
+      </div>
+    </div>
+  </div>
+  <div id="hmDiff">
+    <div class="box">
+      <h2>🔍 考點比對</h2>
+      <div id="hmdMsg" class="hmd-msg"></div>
+      <div class="hmd-g" id="hmdDupG">
+        <div class="hmd-t dup">已記錄（可略過或覆蓋）</div>
+        <ul id="hmdDup"></ul>
+      </div>
+      <div class="hmd-g">
+        <div class="hmd-t new">新考點（將存入）</div>
+        <ul id="hmdNew"></ul>
+      </div>
+      <div class="act">
+        <button id="hmdSkip" class="primary">只存新的（略過已記錄）</button>
+        <button id="hmdOverwrite">覆蓋已記錄的</button>
+        <button id="hmdCancel">取消</button>
+      </div>
+    </div>
+  </div>
+  <div id="reviewBanner" style="display:none;"></div>
+  <div id="ocrPanel">
+    <div class="box">
+      <h2>🅾 OCR 設定</h2>
+      <label for="ocrProvider">翻譯提供商</label>
+      <select id="ocrProvider">
+        <option value="deepseek">DeepSeek</option>
+        <option value="openai">OpenAI</option>
+        <option value="moonshot">Kimi（Moonshot）</option>
+        <option value="openrouter">OpenRouter</option>
+        <option value="groq">Groq</option>
+        <option value="ollama">Ollama（本機）</option>
+        <option value="tencent">Tencent（TokenHub hy3）</option>
+        <option value="custom">自訂（OpenAI 相容）</option>
+      </select>
+      <label for="ocrBase">API 位址（base_url）</label>
+      <input id="ocrBase" type="text" placeholder="https://api.deepseek.com" autocomplete="off">
+      <label for="ocrModel">模型</label>
+      <input id="ocrModel" type="text" placeholder="deepseek-chat" autocomplete="off">
+      <label for="ocrKey">API Key（Ollama 免填）</label>
+      <input id="ocrKey" type="password" placeholder="sk-..." autocomplete="off">
+      <label for="ocrLang">OCR 語言</label>
+      <input id="ocrLang" type="text" placeholder="japan" value="japan">
+      <label for="ocrOrder">文字方向</label>
+      <select id="ocrOrder">
+        <option value="auto">自動判斷（竪排右→左・橫排左→右）</option>
+        <option value="vertical">竪排（右→左）</option>
+        <option value="horizontal">橫排（左→右）</option>
+      </select>
+      <label for="ocrPrompt">翻譯提示詞</label>
+      <textarea id="ocrPrompt" rows="4"></textarea>
+      <div class="act">
+        <button class="primary" id="ocrSave">保存</button>
+        <button id="ocrClose">關閉</button>
+      </div>
+    </div>
+  </div>
+  <div id="exportModal">
+    <div class="box">
+      <button class="hx" id="exportClose" title="關閉">✕</button>
+      <h2>📤 導出原文</h2>
+      <p class="desc">導出原文為 Markdown 格式，可用於翻譯後導入</p>
+      <label>
+        <input type="radio" name="exportScope" value="page" checked> 導出當前頁
+      </label>
+      <label>
+        <input type="radio" name="exportScope" value="all"> 導出所有頁
+      </label>
+      <div id="exportPromptSection">
+        <label>System Prompt</label>
+        <input id="exportSystem" type="text" value="" autocomplete="off">
+        <label>翻譯指令</label>
+        <input id="exportInstruction" type="text" value="" autocomplete="off">
+        <label>輸出格式要求</label>
+        <input id="exportOutputFormat" type="text" value="" autocomplete="off">
+      </div>
+      <div class="act">
+        <button class="primary" id="exportBtn">📤 導出</button>
+        <button id="exportCancel">取消</button>
+      </div>
+    </div>
+  </div>
+  <div id="importModal">
+    <div class="box">
+      <button class="hx" id="importClose" title="關閉">✕</button>
+      <h2>📥 導入譯文</h2>
+      <p class="desc">粘貼翻譯後的 Markdown 內容，將譯文導入到對應標號</p>
+      <label>
+        <input type="radio" name="importScope" value="page" checked> 導入到當前頁
+      </label>
+      <label>
+        <input type="radio" name="importScope" value="all"> 導入到所有頁（多頁格式）
+      </label>
+      <textarea id="importContent" rows="12" placeholder="粘貼翻譯後的 Markdown 內容...&#10;&#10;[1]&#10;原文: 今日はいい天気です&#10;譯文: 今天天氣很好&#10;&#10;[2]&#10;原文: 明日も晴れます&#10;譯文: 明天也會是晴天"></textarea>
+      <div class="act">
+        <button class="primary" id="importBtn">📥 導入</button>
+        <button id="importCancel">取消</button>
+      </div>
+    </div>
+  </div>
+<script>
+  window.__INIT__ = {
+    images: {{ images|tojson }},
+    mode: {{ mode|tojson }},
+    initial_img: {{ initial_img|tojson }},
+    initial_dpi: {{ initial_dpi|tojson }},
+    initial_scale: {{ initial_scale|tojson }}
+  };
+</script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
